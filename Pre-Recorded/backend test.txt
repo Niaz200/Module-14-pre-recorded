@@ -1,0 +1,111 @@
+UserController.php
+===================
+
+Registration
+==========
+
+step:1
+======
+
+ function UserRegistration(Request $request){
+   
+        return  User::create([
+                'firstName' => $request->input('firstName'),
+                'lastName' => $request->input('lastName'),
+                'email' => $request->input('email'),
+                'mobile' => $request->input('mobile'),
+                'password' => $request->input('password'),
+            ]);
+       
+
+        
+    }
+
+
+step:2
+=====
+ function UserRegistration(Request $request){
+   
+            User::create([
+                'firstName' => $request->input('firstName'),
+                'lastName' => $request->input('lastName'),
+                'email' => $request->input('email'),
+                'mobile' => $request->input('mobile'),
+                'password' => $request->input('password'),
+            ]);
+       
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User Registration Successfully'
+            ],200);
+        
+    }
+
+
+
+Login
+=======
+step:1
+
+
+    function UserLogin(Request $request){
+        $count=User::where('email','=',$request->input('email'))
+             ->where('password','=',$request->input('password'))
+             ->count();
+ 
+        if($count==1){
+            // User Login-> JWT Token Issue
+            $token=JWTToken::CreateToken($request->input('email'));
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User Login Successful',
+                'token' => $token,
+            ],200);
+        }
+        else{
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'unauthorized'
+            ],200);
+ 
+        }
+ 
+     }
+
+
+
+JWTToekn:
+=========
+
+ public static function CreateToken($userEmail):string{
+        $key =env('JWT_KEY');
+        $payload=[
+            'iss'=>'laravel-token',
+            'iat'=>time(),
+            'exp'=>time()+60*60,
+            'userEmail'=>$userEmail,
+            // 'userID'=>$userID
+        ];
+       return JWT::encode($payload,$key,'HS256');
+    }
+
+
+
+    public static function VerifyToken($token):string|object
+    {
+        try {
+            if($token==null){
+                return 'unauthorized';
+            }
+            else{
+                $key =env('JWT_KEY');
+                $decode=JWT::decode($token,new Key($key,'HS256'));
+                // return $decode->userEmsil;
+                return $decode;
+            }
+        }
+        catch (Exception $e){
+            return 'unauthorized';
+        }
+    }
